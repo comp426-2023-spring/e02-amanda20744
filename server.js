@@ -2,6 +2,7 @@
 // Create require function 
 // https://nodejs.org/docs/latest-v18.x/api/module.html#modulecreaterequirefilename
 import { createRequire } from 'node:module';
+import { rps, rpsls } from './lib/rpsls.js'
 const require = createRequire(import.meta.url);
 // The above two lines allow us to use ES methods and CJS methods for loading
 // dependencies.
@@ -20,10 +21,8 @@ if (args.debug) {
 if (args.h || args.help) {
     console.log(`
 usage: node server.js --port=5000
-
 This package serves the static HTML, CSS, and JS files in a /public directory.
 It also creates logs in a common log format (CLF) so that you can better.
-
   --stat,  -s    Specify the directory for static files to be served
                     Default: ./public/
   --port, -p    Specify the port for the HTTP server to listen on
@@ -71,6 +70,42 @@ app.use(morgan(':remote-addr - :remote-user [:date[iso]] ":method :url HTTP/:htt
 // Serve static files
 const staticpath = args.stat || args.s || process.env.STATICPATH || path.join(__dirname, 'public')
 app.use('/', express.static(staticpath))
+
+app.use(express.json());
+app.use(express.urlencoded({extended: true}))
+
+app.get('/app', (req, res) => {
+	res.status(200).send("200 OK");
+})
+
+app.get('/app/rps', (req, res) => {
+	res.status(200).send(rps());
+})
+
+app.get('/app/rpsls', (req, res) => {
+	res.status(200).send(rpsls());
+})
+
+app.get('/app/rps/play', (req, res) => {
+	res.status(200).send(rps(req.query.shot));
+})
+
+app.get('/app/rpsls/play', (req, res) => {
+	res.status(200).send(rpsls(req.query.shot));
+})
+
+app.get('/app/rps/play/:arg', (req, res) => {
+	res.status(200).send(rps(req.params.arg));
+})
+
+app.get('/app/rpsls/play/:arg', (req, res) => {
+	res.status(200).send(rpsls(req.params.arg));
+})
+
+app.get('*', (req, res) => {
+	res.status(404).send('404 NOT FOUND');
+})
+
 // Create app listener
 const server = app.listen(port)
 // Create a log entry on start
